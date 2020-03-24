@@ -1,0 +1,102 @@
+package com.ethan.common.app;
+
+import android.content.Context;
+import android.os.Bundle;
+import android.view.LayoutInflater;
+import android.view.View;
+import android.view.ViewGroup;
+
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
+import androidx.fragment.app.Fragment;
+
+import butterknife.ButterKnife;
+import butterknife.Unbinder;
+
+public abstract class BaseFragment extends Fragment {
+
+    protected View mRoot;
+    protected Unbinder mRootUnbinder;
+
+    @Override
+    public void onAttach(@NonNull Context context) {
+        super.onAttach(context);
+
+        initArgs(getArguments());
+    }
+
+    @Nullable
+    @Override
+    public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
+
+        if (mRoot == null) {
+            int layId = getContentLayoutId();
+
+            // init cuurent root view,
+            // but do not add the view into the ViewGroup(container) when at init state
+            View root = inflater.inflate(layId,container,false);
+
+            initWidget(root);
+            mRoot = root;
+        }else{
+            /**
+             * 主要的作用是为了后面的生命周期中维持这个变量，避免在异常回收情况下出现重复的生命流程调用，
+             * 避免Presenter部分的初始化重复调用。当然这是一个临时的处理办法，因为还有更优秀的处理方案。
+             */
+            if (mRoot.getParent() != null) {
+                // Remove the current root from its parent
+                ((ViewGroup)mRoot.getParent()).removeView(mRoot);
+            }
+        }
+
+        return mRoot;
+
+    }
+
+    /**
+     * It is recommended to only inflate the layout in onCreateView(...) and
+     * move logic that operates on the returned View to onViewCreated(View, Bundle).
+     * @param view
+     * @param savedInstanceState
+     */
+    @Override
+    public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
+        super.onViewCreated(view, savedInstanceState);
+
+        initData();
+    }
+
+    protected abstract int getContentLayoutId();
+
+    /**
+     * init some arguments
+     * @param bundle
+     * @return
+     */
+    protected void initArgs(Bundle bundle){
+    }
+
+
+    protected void initWidget(View root){
+        mRootUnbinder = ButterKnife.bind(this,root);
+    }
+
+    protected void initData(){
+
+    }
+
+    /**
+     * trigger when the back btn is clicked
+     * @return true if the logic has already been processed, the Activity should not finish for it.
+     *         false if still not processed yet, then Activity can do its own backPressed logic.
+     */
+    public boolean onBackPressed(){
+        return false;
+    }
+
+
+    @Override
+    public void onDestroyView() {
+        super.onDestroyView();
+    }
+}
