@@ -1,0 +1,2 @@
+include ':app', ':common', ':factory', ':lang', ':face-res'
+rootProject.name='IMFront'
